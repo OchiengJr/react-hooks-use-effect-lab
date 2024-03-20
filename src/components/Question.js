@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from "react";
 
 function Question({ question, onAnswered }) {
+  const { id, prompt, answers, correctIndex } = question;
   const [timeRemaining, setTimeRemaining] = useState(10);
+  const [intervalId, setIntervalId] = useState(null);
+  const [timeoutId, setTimeoutId] = useState(null);
 
   useEffect(() => {
-    let intervalId = setInterval(() => {
-      setTimeRemaining((prevTime) => {
-        if (prevTime === 0) {
-          onAnswered(false);
-          return 0;
-        }
-        return prevTime - 1;
-      });
-    }, 1000);
+    function startTimer() {
+      const interval = setInterval(() => {
+        setTimeRemaining((prevTime) => (prevTime === 0 ? 0 : prevTime - 1));
+      }, 1000);
+      setIntervalId(interval);
 
-    let timeoutId = setTimeout(() => {
-      clearInterval(intervalId);
-      onAnswered(false);
-    }, 10000);
+      const timeout = setTimeout(() => {
+        clearInterval(interval);
+        onAnswered(false);
+      }, 10000);
+      setTimeoutId(timeout);
+    }
+
+    startTimer();
 
     return () => {
       clearInterval(intervalId);
       clearTimeout(timeoutId);
     };
-  }, [onAnswered]);
+  }, [onAnswered, intervalId, timeoutId]);
 
   function handleAnswer(isCorrect) {
     clearInterval(intervalId);
@@ -32,20 +35,15 @@ function Question({ question, onAnswered }) {
     onAnswered(isCorrect);
   }
 
-  const { id, prompt, answers, correctIndex } = question;
-
   return (
     <>
       <h1>Question {id}</h1>
       <h3>{prompt}</h3>
-      {answers.map((answer, index) => {
-        const isCorrect = index === correctIndex;
-        return (
-          <button key={answer} onClick={() => handleAnswer(isCorrect)}>
-            {answer}
-          </button>
-        );
-      })}
+      {answers.map((answer, index) => (
+        <button key={answer} onClick={() => handleAnswer(index === correctIndex)}>
+          {answer}
+        </button>
+      ))}
       <h5>{timeRemaining} seconds remaining</h5>
     </>
   );

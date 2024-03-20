@@ -1,5 +1,11 @@
 {
   "typeAcquisition": {
-    "include": ["jest"]
+    "include": [
+      "jest@^26.0.0",
+      // Add other testing libraries/types if needed
+    ],
+    "exclude": [
+      // Exclude unnecessary types if any
+    ]
   }
 }

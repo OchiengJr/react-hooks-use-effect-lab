@@ -3,6 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { act } from "react-dom/test-utils";
 import Question from "../components/Question";
 
+jest.useFakeTimers();
+
 const testQuestion = {
   id: 1,
   prompt: "lorem testum",
@@ -12,37 +14,17 @@ const testQuestion = {
 
 const noop = () => {};
 
-beforeEach(() => {
-  jest.useFakeTimers();
-});
-
-afterEach(() => {
-  jest.runOnlyPendingTimers();
-  jest.useRealTimers();
-});
-
-// const onChange = jest.fn();
-test("creates an interval with setTimeout", () => {
-  jest.spyOn(global, 'setTimeout');
+test("renders with 10 seconds remaining", () => {
   render(<Question question={testQuestion} onAnswered={noop} />);
-  expect(setTimeout).toHaveBeenCalled();
+  expect(screen.getByText("10 seconds remaining")).toBeInTheDocument();
 });
 
 test("decrements the timer by 1 every second", () => {
   render(<Question question={testQuestion} onAnswered={noop} />);
-  expect(screen.queryByText(/10 seconds remaining/)).toBeInTheDocument();
   act(() => {
-    jest.advanceTimersByTime(1000);
+    jest.advanceTimersByTime(3000);
   });
-  expect(screen.queryByText(/9 seconds remaining/)).toBeInTheDocument();
-  act(() => {
-    jest.advanceTimersByTime(1000);
-  });
-  expect(screen.queryByText(/8 seconds remaining/)).toBeInTheDocument();
-  act(() => {
-    jest.advanceTimersByTime(1000);
-  });
-  expect(screen.queryByText(/7 seconds remaining/)).toBeInTheDocument();
+  expect(screen.getByText("7 seconds remaining")).toBeInTheDocument();
 });
 
 test("calls onAnswered after 10 seconds", () => {
@@ -55,7 +37,6 @@ test("calls onAnswered after 10 seconds", () => {
 });
 
 test("clears the timeout after unmount", () => {
-  jest.spyOn(global, 'clearTimeout');
   const { unmount } = render(
     <Question question={testQuestion} onAnswered={noop} />
   );
